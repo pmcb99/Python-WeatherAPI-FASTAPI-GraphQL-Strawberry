@@ -14,6 +14,7 @@ API uses date format YYYY-MM-DD
 
 '''
 #7pm -> Stopwatch at 3h
+#8.04pm -> stopwatch at 4h
 
 '''
 1 query for weather where you input a city and date, output should be data on temp and humidity by time. Bonus: thoughtful about picking the data type for the output
@@ -24,6 +25,7 @@ API uses date format YYYY-MM-DD
 '''USING DICTIONARY-BASED DB TO STORE ALL DATA'''
 db = {}
 strawberry_db = {}
+favourite_city_db = {}
 
 def get_hourly_weather_by_city_and_date(city: str, date: str) -> Dict[str,str]:
     #Check database for value using CITY|DATE as key and update db as required
@@ -57,6 +59,14 @@ def get_hourly_weather_by_city_and_date(city: str, date: str) -> Dict[str,str]:
 def get_temperatures_for_date(root)->"TemperatureAtTime":
     pass
 
+@strawberry.type
+class Mutation:
+    @strawberry.mutation
+    def addFavouriteCity(self, city: str, userName: str) -> str:
+        favourite_city_db[userName] = city
+        print(f"Added {city} to favourites for user {userName}")
+        return f"Added {city} to favourites for user {userName}"
+
 # @strawberry.type
 # class Temperature:
 #     date: str
@@ -86,9 +96,12 @@ class Query:
     def getWeatherData(self, date: str, city: str) -> WeatherData:
         return strawberry_db['|'.join([city,date])]
         weather_data: List[WeatherData] = strawberry.field(resolver=get_weather_data)
+    @strawberry.field
+    def getFavouriteCity(self,userName: str) -> str:
+        return favourite_city_db[userName]
 
 get_hourly_weather_by_city_and_date('London', '2023-02-23') #insert into db
-schema = strawberry.Schema(Query)
+schema = strawberry.Schema(Query,mutation=Mutation)
 graphql_app = GraphQLRouter(schema)
 
 
