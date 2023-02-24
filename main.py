@@ -37,8 +37,8 @@ def get_hourly_weather_by_city_and_date(city: str, date: str) -> Dict[str,str]:
         weather_data_object = WeatherData(date=date, city=city, times=[], temperatures=[], humidities=[])
         for hour in hourly_data:
             weather_data_object.times.append(hour['time'])
-            weather_data_object.temperatures.append(Temperature(date=date, time=hour['time'], temperature=hour['temp_f']))
-            weather_data_object.humidities.append(Humidity(date=date, time=hour['time'], humidity=hour['humidity']))
+            weather_data_object.temperatures.append(hour['temp_f'])
+            weather_data_object.humidities.append(hour['humidity'])
             # db[f"{city}|{date}"] = [hour['time'], hour['temp_f'], hour['humidity']]
         strawberry_db[f'{city}|{date}'] = weather_data_object
         # print(db[f"{city}|{date}"])
@@ -57,25 +57,25 @@ def get_hourly_weather_by_city_and_date(city: str, date: str) -> Dict[str,str]:
 def get_temperatures_for_date(root)->"TemperatureAtTime":
     pass
 
-@strawberry.type
-class Temperature:
-    date: str
-    time: str
-    temperature: float
+# @strawberry.type
+# class Temperature:
+#     date: str
+#     time: str
+#     temperature: float
     
-@strawberry.type
-class Humidity:
-    date: str
-    time: str
-    humidity: float
+# @strawberry.type
+# class Humidity:
+#     date: str
+#     time: str
+#     humidity: float
 
 @strawberry.type
 class WeatherData:
     date: str
     city: str
     times: List[str]
-    temperatures: List[Temperature]
-    humidities: List[Humidity]
+    temperatures: List[float]
+    humidities: List[float]
 
 def get_weather_data(root)->WeatherData:
     return [WeatherData(date="2023-02-23", city="London")]
