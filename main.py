@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from strawberry.fastapi import GraphQLRouter
 from config.config import DevConfig
 from typing import Dict, List
+from src.graphql.resolvers.weather_resolvers import get_weather_data 
 import json
 import requests
 
@@ -31,25 +32,18 @@ def get_hourly_weather_by_city_and_date(city: str, date: str) -> Dict[str,str]:
     #Check database for value using CITY|DATE as key and update db as required
     if '|'.join([city,date]) in db:
         return strawberry_db['|'.join([city,date])]
-        # return db['|'.join([city,date])]
-    #Read json file for testing
-    with open('test_files/test_weather.json') as f:
-        data = json.load(f)
-        hourly_data = data['forecast']['forecastday'][0]['hour']
+    weather_api_url = f"http://api.weatherapi.com/v1/history.json?key={DevConfig.weather_api_key}&q={city}&dt={date}"
+    r = requests.get(weather_api_url, headers={'Accept': 'application/json'})
+    if r.status_code == 200:
+        print(r.status_code)
+        print(r.json())
+        hourly_data = r.json()['forecast']['forecastday'][0]['hour']
         weather_data_object = WeatherData(date=date, city=city, times=[], temperatures=[], humidities=[])
         for hour in hourly_data:
             weather_data_object.times.append(hour['time'])
             weather_data_object.temperatures.append(hour['temp_f'])
             weather_data_object.humidities.append(hour['humidity'])
-            # db[f"{city}|{date}"] = [hour['time'], hour['temp_f'], hour['humidity']]
         strawberry_db[f'{city}|{date}'] = weather_data_object
-        # print(db[f"{city}|{date}"])
-        # return db[f"{city}|{date}"]
-
-
-    weather_api_url = f"http://api.weatherapi.com/v1/history.json?key={DevConfig.weather_api_key}&q={city}&dt={date}"
-    r = requests.get(weather_api_url, headers={'Accept': 'application/json'})
-    if r.status_code == 200:
         hourly_data = r.json()['forecast']['forecastday'][0]['hour']
         print(type(hourly_data))
     else:
@@ -87,20 +81,20 @@ class WeatherData:
     temperatures: List[float]
     humidities: List[float]
 
-def get_weather_data(root)->WeatherData:
-    return [WeatherData(date="2023-02-23", city="London")]
+# def get_weather_data(city: str, date: str)->WeatherData:
+#     get_hourly_weather_by_city_and_date(city,date)
+#     return strawberry_db[f'{city}|{date}']
 
 @strawberry.type
 class Query:
     @strawberry.field
     def getWeatherData(self, date: str, city: str) -> WeatherData:
-        return strawberry_db['|'.join([city,date])]
-        weather_data: List[WeatherData] = strawberry.field(resolver=get_weather_data)
+        return get_weather_data(city,date,strawberry_db)
     @strawberry.field
     def getFavouriteCity(self,userName: str) -> str:
         return favourite_city_db[userName]
 
-get_hourly_weather_by_city_and_date('London', '2023-02-23') #insert into db
+# get_hourly_weather_by_city_and_date('London', '2023-02-23') #insert into db
 schema = strawberry.Schema(Query,mutation=Mutation)
 graphql_app = GraphQLRouter(schema)
 
