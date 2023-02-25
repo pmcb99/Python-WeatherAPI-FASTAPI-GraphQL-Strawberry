@@ -1,9 +1,19 @@
-create_favourite_city_for_pmcb = """mutation {
-  addFavouriteCity(city: "New York", userName: "pmcb")
+valid_user_valid_city= """mutation {
+  addFavouriteCity(city: "Dublin", userName: "cat")
 }
 """
 
-create_favourite_city_for_cat = """mutation {
-  addFavouriteCity(city: "Dublin", userName: "cat")
+valid_user_invalid_city= """mutation {
+  addFavouriteCity(city: "D", userName: "cat")
+}
+"""
+
+invalid_user_valid_city= """mutation {
+  addFavouriteCity(city: "Dublin", userName: "iamnotauser")
+}
+"""
+
+invalid_user_invalid_city= """mutation {
+  addFavouriteCity(city: "D", userName: "iamnotauser")
 }
 """
