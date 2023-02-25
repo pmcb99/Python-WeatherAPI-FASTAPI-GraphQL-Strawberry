@@ -3,7 +3,7 @@ from typing import Dict
 from src.graphql.scalars.weather_scalar import WeatherData
 from config.config import DevConfig
 
-def get_hourly_weather_by_city_and_date(city: str, date: str) -> None:
+def get_hourly_weather_by_city_and_date(city: str, date: str) -> WeatherData:
     from src.graphql.db.dict_based import weather_db 
     #Check database for value using CITY|DATE as key and update db as required
     if '|'.join([city,date]) in weather_db:
@@ -20,7 +20,7 @@ def get_hourly_weather_by_city_and_date(city: str, date: str) -> None:
             weather_data_object.temperatures.append(hour['temp_f'])
             weather_data_object.humidities.append(hour['humidity'])
         weather_db[f'{city}|{date}'] = weather_data_object
-        hourly_data = r.json()['forecast']['forecastday'][0]['hour']
-        print(type(hourly_data))
+        return weather_data_object
     else:
         print(f"Status Code: {r.status_code}, Content: {r.json()}")
+        return WeatherData(date=date, city=city, times=[], temperatures=[], humidities=[])
