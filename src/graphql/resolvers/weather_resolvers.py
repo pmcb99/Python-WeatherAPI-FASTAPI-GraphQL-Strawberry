@@ -13,4 +13,4 @@ def add_favourite_city_for_user(city: str, user: str)->str:
     return f"Added {city} to favourites for user {user}"
 
 def get_favourite_city(user: str)->WeatherData:
-    return city_db[f'{user}']
+    return city_db[str(user)] if str(user) in city_db else "NULL"
